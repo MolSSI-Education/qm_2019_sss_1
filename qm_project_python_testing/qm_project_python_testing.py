@@ -29,7 +29,7 @@ atomic_coordinates = np.array([ [0.0,0.0,0.0], [3.0,4.0,5.0] ])
 
 class Nobel_Gas_model:
     def __init__(self, gas_model):
-        self.gas_model = gas_model 
+        self.gas_model = gas_model
         self.model_parameters = self.assign_model_parameters()
         self.ionic_charge = 6
         self.orbital_types = ['s', 'px', 'py', 'pz']
@@ -318,6 +318,8 @@ def chi_on_atom(o1, o2, o3, model_parameters):
         float
             The integer means chi tensor for the orbital indices.
     '''
+def chi_on_atom(o1, o2, o3, model_parameters, system):
+    '''Returns the value of the chi tensor for 3 orbital indices on the same atom.'''
     if o1 == o2 and o3 == 's':
         return 1.0
     if o1 == o3 and o3 in system.p_orbitals and o2 == 's':
@@ -356,7 +358,8 @@ def calculate_chi_tensor(atomic_coordinates, model_parameters, system):
             q = system.ao_index(system.atom(p), orb_q) # p & q on same atom
             for orb_r in system.orbital_types:
                 r = system.ao_index(system.atom(p), orb_r) # p & r on same atom
-                chi_tensor[p,q,r] = chi_on_atom(system.orb(p), system.orb(q), system.orb(r), system.model_parameters)
+                chi_tensor[p,q,r] = (chi_on_atom(system.orb(p), system.orb(q),
+                system.orb(r), system.model_parameters, system))
     return chi_tensor
 
  #print('chi =\n',chi_tensor)
@@ -397,7 +400,7 @@ def calculate_hamiltonian_matrix(atomic_coordinates, model_parameters, system):
                     hamiltonian_matrix[p,q] += system.model_parameters['energy_p']
                 for orb_r in system.orbital_types:
                     r = system.ao_index(system.atom(p), orb_r)
-                    hamiltonian_matrix[p,q] += ( chi_on_atom(system.orb(p), system.orb(q), orb_r, system.model_parameters)
+                    hamiltonian_matrix[p,q] += ( chi_on_atom(system.orb(p), system.orb(q), orb_r, system.model_parameters, system)
                                                  * potential_vector[r] )
     return hamiltonian_matrix
 
@@ -429,7 +432,7 @@ class Hartree_Fock:
         self.chi_tensor = chi_tensor
         self.fock_matrix = self.calculate_fock_matrix(density_matrix)
         self.density_matrix = self.calculate_density_matrix(self.fock_matrix, system)
-        self.conv_density_matrix, self.conv_fock_matrix = self.scf_cycle(*scf_params) 
+        self.conv_density_matrix, self.conv_fock_matrix = self.scf_cycle(*scf_params)
         self.energy_scf = self.calculate_energy_scf()
 
     def calculate_fock_matrix(self, density_matrix):
@@ -471,7 +474,7 @@ class Hartree_Fock:
 
            Parameters
            ----------
-           fock_matrix : np.array 
+           fock_matrix : np.array
                The fock matrix is a numpy array of size (ndof,ndof)
 
            Returns
@@ -479,7 +482,7 @@ class Hartree_Fock:
            density_matrix : np.array
                The density matrix is a numpy array of size (ndof,ndof) that is the product of the
                occupied MOs with the transpose of the occupied MOs.
-           
+
         '''
         num_occ = (system.ionic_charge // 2) * np.size(fock_matrix,
                                                 0) // system.orbitals_per_atom
@@ -502,13 +505,13 @@ class Hartree_Fock:
            chi_tensor : np.array
                This is th chi tensor as a numpy array of size(ndof,ndof,ndof)
            max_scf_iteration : int,optional
-               This is the maximum number of iterations that the Cycle should take to try and converge. Default is 100 
+               This is the maximum number of iterations that the Cycle should take to try and converge. Default is 100
 
            Returns
            -------
            new_density_matrix: np.array
                This is returned either as the converged density or non-converged if max_iterations is passed,
-               it is a numpy array of size(ndof,ndof) 
+               it is a numpy array of size(ndof,ndof)
            new_fock_matrix: np.array
                This is either the converged fock matrix or non-converged if max_iterations is passed and the
                warning is printed. The output array is of size(ndof,ndof)
@@ -537,7 +540,7 @@ class Hartree_Fock:
                This is the hamiltoian matrix calculated in calculate_hamiltonian_matrix, it is a numpy array of size(ndof,ndof)
            fock_matrix : np.array
                This is the fock matrix calculated in scf_cycle, it is a nupmy array of size (ndof,ndof)
-           density_marix : np.array           
+           density_marix : np.array
                This is the density matrix calculated in scf_cycle, it is a nupmy array of size (ndof,ndof)
 
            Returns
@@ -554,7 +557,7 @@ class Hartree_Fock:
 class MP2():
     def __init__(self, energy_ion, atomic_coordinates):
         #super().__init__(chi_tensor, interaction_matrix, energy_scf)
-        
+
         self.conv_fock_matrix = calc.conv_fock_matrix
         self.energy_ion = energy_ion
         self.atomic_coordinates = atomic_coordinates
@@ -594,15 +597,15 @@ class MP2():
         virtual_energy = orbital_energy[num_occ:]
         occupied_matrix = orbital_matrix[:, :num_occ]
         virtual_matrix = orbital_matrix[:, num_occ:]
-        
+
         return occupied_energy, virtual_energy, occupied_matrix, virtual_matrix
 
     def transform_interaction_tensor(self):
-        
+
         chi2_tensor = np.einsum('qa,ri,qrp', self.virtual_matrix, self.occupied_matrix, calc.chi_tensor, optimize=True)
         interaction_tensor = np.einsum('aip,pq,bjq->aibj', chi2_tensor, calc.interaction_matrix, chi2_tensor, optimize=True)
         return interaction_tensor
-    
+
     def calculate_energy_mp2(self):
         num_occ =  ((system.ionic_charge // 2) * np.size(self.conv_fock_matrix, 0) // system.orbitals_per_atom)
         num_virt = (len(self.atomic_coordinates) * system.orbitals_per_atom) - num_occ
@@ -613,8 +616,8 @@ class MP2():
             for b in range(num_virt):
                 for i in range(num_occ):
                     for j in range(num_occ):
-                        energy_mp2 -= ((2.0 * self.interaction_tensor[a, i, b, j]**2 - self.interaction_tensor[a, i, b, j] * 
-					self.interaction_tensor[a, j, b, i]) / (self.virtual_energy[a] + self.virtual_energy[b] - 
+                        energy_mp2 -= ((2.0 * self.interaction_tensor[a, i, b, j]**2 - self.interaction_tensor[a, i, b, j] *
+					self.interaction_tensor[a, j, b, i]) / (self.virtual_energy[a] + self.virtual_energy[b] -
 					self.occupied_energy[i] - self.occupied_energy[j]))
         return energy_mp2
 
@@ -624,7 +627,7 @@ class MP2():
         return total_energy
 
 
-                                                                   
+
 if __name__ == "__main__":
     scf_params = []
     try:
@@ -653,4 +656,7 @@ if __name__ == "__main__":
     mp2 = MP2(energy_ion, atomic_coordinates)
     print('MP2 second order correction: ',mp2.mp2_energy)
     print('Total Energy after MP2 correction: ', mp2.total_energy)
+
+
+
 #    universe.py(str(sys.argv[2]))
