@@ -2,6 +2,7 @@ import json
 import numpy as np
 import sys
 import os #may not need if xyz file shares the same directory as the program
+import hartree_fock
 
 #Adding feature to read from .xyz geometry file -AZ
 #may or may not be read from the working directory
@@ -39,7 +40,7 @@ class Nobel_Gas_model:
         self.orbital_occupations = {'s' : 0, 'px' : 1, 'py' : 1, 'pz' : 1 }
 
     def assign_model_parameters(self):
-        filename = self.gas_model+'.txt'
+        filename = self.gas_model
         commands = {}
         with open(filename) as fh:
             for line in fh:
@@ -56,22 +57,6 @@ class Nobel_Gas_model:
         p = atom_p * self.orbitals_per_atom
         p += self.orbital_types.index(orb_p)
         return p
-
-# system = Nobel_Gas_model()
-# print(system)
-# print(system.model_parameters)
-
-# for index in range(2*system.orbitals_per_atom):
-#     print('index',index,'atom',system.atom(index),'orbital',system.orb(index))
-#
-# print('index test:')
-# for index in range(2*system.orbitals_per_atom):
-#     atom_p = system.atom(index)
-#     orb_p = system.orb(index)
-#     print(index, system.ao_index(atom_p,orb_p))
-
- #see above
- #atomic_coordinates = np.array([ [0.0,0.0,0.0], [3.0,4.0,5.0] ])
 
 def hopping_energy(o1, o2, r12, model_parameters, system):
     r12_rescaled = r12 / model_parameters['r_hop']
@@ -211,44 +196,10 @@ class Hartree_Fock:
         self.hamiltonian_matrix = hamiltonian_matrix
         self.interaction_matrix = interaction_matrix
         self.chi_tensor = chi_tensor
-        self.fock_matrix = self.calculate_fock_matrix(density_matrix)
+        self.fock_matrix = hartree_fock.calculate_fock_matrix(self.hamiltonian_matrix, self.interaction_matrix, density_matrix, system.orbitals_per_atom, system.model_parameters['dipole'])
         self.density_matrix = self.calculate_density_matrix(self.fock_matrix, system)
         self.conv_density_matrix, self.conv_fock_matrix = self.scf_cycle(*scf_params) 
         self.energy_scf = self.calculate_energy_scf()
-
-    def calculate_fock_matrix(self, density_matrix):
-        '''Returns the Fock matrix defined by the input Hamiltonian, interaction, & density matrices.
-
-        Parameters
-        ----------
-        hamiltonian_matrix : numpy.array
-            A 2D array of 1-body Hamiltonian matrix elements.
-        interaction_matrix : numpy.array
-            A 2D array of electron-electron interaction matrix elements.
-        density_matrix : numpy.array
-            A 2D array of 1-electron densities.
-        chi_tensor : numpy.array
-            A 3D array for the chi tensor, a 3-index tensor of p, q, and r. p and q are the atomic orbital indices and r is the multipole moment index.
-
-        Returns
-        -------
-        fock_matrix : numpy.array
-            A 2D array of Fock matrix elements.
-        '''
-        fock_matrix = self.hamiltonian_matrix.copy()
-        fock_matrix += 2.0 * np.einsum('pqt,rsu,tu,rs',
-                                       self.chi_tensor,
-                                       self.chi_tensor,
-                                       self.interaction_matrix,
-                                       density_matrix,
-                                       optimize=True)
-        fock_matrix -= np.einsum('rqt,psu,tu,rs',
-                                 self.chi_tensor,
-                                 self.chi_tensor,
-                                 self.interaction_matrix,
-                                 density_matrix,
-                                 optimize=True)
-        return fock_matrix
 
     def calculate_density_matrix(self, fock_matrix, system):
         '''Returns the 1-electron density matrix defined by the input Fock matrix.
@@ -300,7 +251,7 @@ class Hartree_Fock:
 
         old_density_matrix = self.density_matrix.copy()
         for iteration in range(max_scf_iterations):
-            new_fock_matrix = self.calculate_fock_matrix(old_density_matrix)
+            new_fock_matrix = hartree_fock.calculate_fock_matrix(self.hamiltonian_matrix, self.interaction_matrix, old_density_matrix, system.orbitals_per_atom, system.model_parameters['dipole'])
             new_density_matrix = self.calculate_density_matrix(new_fock_matrix, system)
 
             error_norm = np.linalg.norm( old_density_matrix - new_density_matrix )
