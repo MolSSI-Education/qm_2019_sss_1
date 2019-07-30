@@ -1,4 +1,4 @@
-import qm_project_python_testing as qm
+import qm_project_sss_2019 as qm
 import pytest
 import numpy as np
 

@@ -1,7 +1,7 @@
 qm\_project\_python\_testing.MP2
 ================================
 
-.. currentmodule:: qm_project_python_testing
+.. currentmodule:: qm_project_sss_2019
 
 .. autoclass:: MP2
 

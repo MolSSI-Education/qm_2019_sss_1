@@ -1,0 +1,29 @@
+#include <vector>
+#include <Eigen/Dense>
+#include <algorithm>
+
+# pragma once
+
+using std::vector; using std::string;
+
+typedef Eigen::MatrixXd matrix;
+
+int atom(int ao_index, int orbitals_per_atom);
+
+int orb_index(int ao_index, int orbitals_per_atom);
+
+matrix calculate_fock_matrix(matrix hamiltonian_matrix, matrix interaction_matrix, matrix density_matrix, vector<string> orbitals, int orbitals_per_atom, double dipole);
+
+template <typename T, typename U>
+bool in_vector(U elem, const vector<T>& vec)
+{   
+    return (std::find(vec.begin(), vec.end(), elem) != vec.end()) ? true : false;
+}
+
+template <typename T>
+vector<T> slice(vector<T>& vec, int i, int f)
+{   
+    vector<T> sliced(f - i + 1);
+    std::copy(vec.begin() + i, vec.begin() + f + 1, sliced.begin());
+    return sliced;
+}

@@ -21,7 +21,7 @@ except:
 
 setup(
     # Self-descriptive entries which should always be present
-    name='qm_project_python_testing',
+    name='qm_project_sss_2019',
     author='Vincent Martinetto',
     author_email='Vmartinetto@ucmerced.edu',
     description=short_description[0],

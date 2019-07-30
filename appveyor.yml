@@ -38,7 +38,7 @@ install:
 build: false
 
 test_script:
-  - pytest -v --cov=qm_project_python_testing qm_project_python_testing\\tests
+  - pytest -v --cov=qm_project_sss_2019 qm_project_sss_2019\\tests
 
 on_success:
   - codecov

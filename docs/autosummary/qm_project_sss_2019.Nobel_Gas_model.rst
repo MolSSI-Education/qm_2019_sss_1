@@ -1,7 +1,7 @@
 qm\_project\_python\_testing.Nobel\_Gas\_model
 ==============================================
 
-.. currentmodule:: qm_project_python_testing
+.. currentmodule:: qm_project_sss_2019
 
 .. autoclass:: Nobel_Gas_model
 
