@@ -42,7 +42,7 @@ install:
 
 
 script:
-  - pytest -v --cov=geometry_analysis geometry_analysis/tests/
+  - pytest -v --cov=qm_sss_2019 qm_sss_2019/tests/
 
 notifications:
     email: false
