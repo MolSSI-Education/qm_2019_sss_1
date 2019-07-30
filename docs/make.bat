@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=qm_project_python_testing
+set SPHINXPROJ=qm_project_sss_2019
 
 if "%1" == "" goto help
 

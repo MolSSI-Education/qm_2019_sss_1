@@ -1,16 +1,16 @@
 """
-Unit and regression test for the qm_project_python_testing package.
+Unit and regression test for the qm_project_sss_2019 package.
 """
 
 # Import package, test suite, and other packages as needed
-import qm_project_python_testing as qm
+import qm_project_sss_2019 as qm
 import pytest
 import numpy as np
 import sys
 
-def test_qm_project_python_testing_imported():
+def test_qm_project_sss_2019_imported():
     """Sample test, will always pass so long as import statement worked"""
-    assert "qm_project_python_testing" in sys.modules
+    assert "qm_project_sss_2019" in sys.modules
 
 
 #refer to the original jupyter notebook for outputs

@@ -4,7 +4,7 @@
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
-SPHINXPROJ    = qm_project_python_testing
+SPHINXPROJ    = qm_project_sss_2019
 SOURCEDIR     = .
 BUILDDIR      = _build
 

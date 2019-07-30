@@ -4,7 +4,7 @@ qm_2019_sss_1
 """
 
 # Add imports here
-from .qm_project_python_testing import *
+from .qm_project_sss_2019 import *
 
 # Handle versioneer
 from ._version import get_versions

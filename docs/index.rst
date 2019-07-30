@@ -1,4 +1,4 @@
-.. qm_project_python_testing documentation master file, created by
+.. qm_project_sss_2019 documentation master file, created by
    sphinx-quickstart on Thu Mar 15 13:55:56 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
