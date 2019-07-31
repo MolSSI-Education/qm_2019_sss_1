@@ -1,4 +1,5 @@
 # Compiling qm_2019_sss_1_cookie's Documentation
+[![Documentation Status](https://readthedocs.org/projects/qm-2019-sss-1-final/badge/?version=latest)](https://qm-2019-sss-1-final.readthedocs.io/en/latest/?badge=latest)
 
 The docs for this project are built with [Sphinx](http://www.sphinx-doc.org/en/master/).
 To compile the docs, first ensure that Sphinx and the ReadTheDocs theme are installed.
