@@ -1,4 +1,4 @@
-qm\_project\_python\_testing.Nobel\_Gas\_model
+qm\_project\_sss\_2019.Nobel\_Gas\_model
 ==============================================
 
 .. currentmodule:: qm_project_sss_2019

@@ -1,4 +1,4 @@
-qm\_project\_python\_testing.MP2
+qm\_project\_sss\_2019\_testing.MP2
 ================================
 
 .. currentmodule:: qm_project_sss_2019

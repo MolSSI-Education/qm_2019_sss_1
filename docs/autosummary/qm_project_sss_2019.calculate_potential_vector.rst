@@ -1,4 +1,4 @@
-qm\_project\_python\_testing.calculate\_potential\_vector
+qm\_project\_sss\_2019.calculate\_potential\_vector
 =========================================================
 
 .. currentmodule:: qm_project_sss_2019

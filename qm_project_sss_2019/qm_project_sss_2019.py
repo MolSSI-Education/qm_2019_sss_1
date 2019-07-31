@@ -2,31 +2,10 @@ import json
 import numpy as np
 import sys
 import os #may not need if xyz file shares the same directory as the program
-import hartree_fock
+#import hartree_fock
+import time
 
-#Adding feature to read from .xyz geometry file -AZ
-#may or may not be read from the working directory
-
-#Integrate within Nobel_Gas_model if desired @Ronit
-
-#xyzfilename = sys.argv[2] #a cmd line argument
-
-#if len(sys.argv) != 3:
-#        print('Filename not specified. Please try again.')
-#        exit()
-
-#geom_file = os.path.join(xyzfilename) #adjust path if needed
-
-#geom = np.genfromtxt(fname=geom_file,skip_header=2, dtype='unicode')
-#atom_labels = geom[0:,0]
-#atomic_coordinates = geom[0:,1:]
-
-#atomic_coordinates = atomic_coordinates.astype(np.float)
-
-#these were provided in the original porject code--should be generalized for any set of coordinates
 atomic_coordinates = np.array([ [0.0,0.0,0.0], [3.0,4.0,5.0] ])
-#atomic_coordinates = 0.000000000001*np.random.random([20,3])
-
 
 class Nobel_Gas_model:
     def __init__(self, gas_model):
@@ -41,16 +20,32 @@ class Nobel_Gas_model:
 
     def assign_model_parameters(self):
         """
-        Function in class Nobel_Gas_model to read in a file containing the model parameters for the nobel gas. The filename mush be of the 
+        Function in class Nobel_Gas_model to read in a file containing the model parameters for the nobel gas. The filename mush be of the
         format <gas_name>.txt.
         """
-        filename = self.gas_model
+        """filename = self.gas_model
         commands = {}
         with open(filename) as fh:
             for line in fh:
                 command, description = line.strip().split(',', 1)
                 commands[command] = float(description.strip())
-        return commands
+        return commands"""
+
+        model_parameters = {
+        'r_hop' : 3.1810226927827516,
+        't_ss' : 0.03365982238611262,
+        't_sp' : -0.029154833035109226,
+        't_pp1' : -0.0804163845390335,
+        't_pp2' : -0.01393611496959445,
+        'r_pseudo' : 2.60342991362958,
+        'v_pseudo' : 0.022972992186364977,
+        'dipole' : 2.781629275106456,
+        'energy_s' : 3.1659446174413004,
+        'energy_p' : -2.3926873325346554,
+        'coulomb_s' : 0.3603533286088998,
+        'coulomb_p' : -0.003267991835806299
+        }
+        return model_parameters
 
     def orb(self, ao_index):
         """
@@ -69,7 +64,7 @@ class Nobel_Gas_model:
         """
         orb_index = ao_index % self.orbitals_per_atom
         return self.orbital_types[orb_index]
-    
+
     def atom(self, ao_index):
         """
         Function in class Nobel_Gas_model which returns the atomic index given the atomic orbital indes
@@ -84,7 +79,7 @@ class Nobel_Gas_model:
             an integer with the atomic index
         """
         return ao_index // self.orbitals_per_atom
-    
+
     def ao_index(self,atom_p, orb_p):
         """
         Function in class Nobel_Gas_model which returns the atomic orbital index
@@ -109,7 +104,7 @@ class Nobel_Gas_model:
 def hopping_energy(o1, o2, r12, model_parameters, system):
     '''
     Returns the hopping matrix element for a pair of orbitals of type o1 & o2 separated by a vector r12.
-    
+
     Parameters
     ----------
     o1, o2 : str
@@ -145,8 +140,8 @@ def coulomb_energy(o1, o2, r12, system):
     '''Returns the Coulomb matrix element for a pair of orbitals of type o1 & o2 separated by a system.vector r12.
 
     The function assums s type orbitals as point charges and p orbitals as dipoles. You can find the
-    interaction energies easily since they are between just point charges and dipoles. 
-    
+    interaction energies easily since they are between just point charges and dipoles.
+
     Parameters
     ----------
     o1, o2 : str
@@ -160,7 +155,7 @@ def coulomb_energy(o1, o2, r12, system):
     -------
     ans : float
         Coulomb matrix element relative to the pair of multipoles o1 and o2 in input.
-    
+
     '''
     r12_length = np.linalg.norm(r12)
     if o1 == 's' and o2 == 's':
@@ -176,27 +171,27 @@ def coulomb_energy(o1, o2, r12, system):
 
 def pseudopotential_energy(o, r, model_parameters, system):
     '''Returns the energy of a pseudopotential between a multipole of type o and an atom separated by a r.
-    This function takes in the pseudopotential parameters defined in the 
-    parameter dictionary and calculates the correction based on the 
-    orbital types which it takes as input. 
+    This function takes in the pseudopotential parameters defined in the
+    parameter dictionary and calculates the correction based on the
+    orbital types which it takes as input.
 
     Parameters
-    ---------- 
+    ----------
     o: str
         A string indicating which orbital correction is being calculated
     r: np.array
         The coordinates of the orbital mentioned above
     model_parameters: dict
-        The dictionary containing all the fitting parameters of the 
+        The dictionary containing all the fitting parameters of the
         system.
     system: Class object
         Added later for easy testing
 
     Returns
-    ------- 
+    -------
     ans: float
         The correction term for the given orbital.
-    
+
     '''
     ans = model_parameters['v_pseudo']
     r_rescaled = r / model_parameters['r_pseudo']
@@ -208,22 +203,22 @@ def pseudopotential_energy(o, r, model_parameters, system):
 
 def calculate_energy_ion(atomic_coordinates, system):
     '''Returns the ionic contribution to the total energy for an input list of atomic coordinates.
-    
+
     The function calculates the ionic repulsion energy for the two ionic
     part of the Hamiltonian, E_ion, considering them as point charges.
 
     Parameters
-    ---------- 
+    ----------
     atomic_coordinates: np.array
         The array has the coordinates of the atoms of the gas atoms
     system: Class object
         Added later for easy testing
 
     Returns
-    ------- 
+    -------
     energy_ion: float
-        The total repulsion energy of the atoms in the model 
- 
+        The total repulsion energy of the atoms in the model
+
     '''
     energy_ion = 0.0
     for i, r_i in enumerate(atomic_coordinates):
@@ -234,9 +229,9 @@ def calculate_energy_ion(atomic_coordinates, system):
 
 def calculate_potential_vector(atomic_coordinates, model_parameters, system):
     '''Returns the electron-ion potential energy system.vector for an input list of atomic coordinates.
-    
+
     Parameters
-    ---------- 
+    ----------
     atomic_coordinates: np.array
         Contains the coordinates of the Nobel Gas atoms in the system.
     model_parameters: dictionary
@@ -245,11 +240,11 @@ def calculate_potential_vector(atomic_coordinates, model_parameters, system):
         Added later for easy testing
 
     Returns
-    ------- 
+    -------
     potential_vector: np.array
         Contains the electron-ion potential energies ommitting the self
         interaction energies.
- 
+
     '''
     ndof = len(atomic_coordinates)*system.orbitals_per_atom
     potential_vector = np.zeros(ndof)
@@ -264,17 +259,17 @@ def calculate_potential_vector(atomic_coordinates, model_parameters, system):
 
 def calculate_interaction_matrix(atomic_coordinates, model_parameters, system):
     '''Returns the electron-electron interaction energy matrix for an input list of atomic coordinates.
-    
+
     This function divides the electron electron repulsion into two parts,
     if the electrons are on different atoms and if the electrons are on
-    the same atom. For the former case, their interaction is purely 
-    coulombic, and for the latter, the repulsion terms are taken from 
+    the same atom. For the former case, their interaction is purely
+    coulombic, and for the latter, the repulsion terms are taken from
     the model parameters.
 
     Parameters
-    ---------- 
+    ----------
     atomic_coordinates: np.array
-        An array containing the list of coordinates of gas atoms in our 
+        An array containing the list of coordinates of gas atoms in our
         system.
     model_parameters: Dictionary
         Containing the fitting parameters for the gas system.
@@ -282,11 +277,11 @@ def calculate_interaction_matrix(atomic_coordinates, model_parameters, system):
         Added later for easy testing
 
     Returns
-    ------- 
+    -------
     interaction_matrix: np.array
         This matrix contains the electron electron interactions in the
         basis considered.
- 
+
     '''
     ndof = len(atomic_coordinates)*system.orbitals_per_atom
     interaction_matrix = np.zeros( (ndof,ndof) )
@@ -305,7 +300,7 @@ def calculate_interaction_matrix(atomic_coordinates, model_parameters, system):
 
 def chi_on_atom(o1, o2, o3, model_parameters):
     '''Returns the value of the chi tensor for 3 orbital indices on the same atom.
-    
+
     Parameters
     ----------
     o1, o2, o3: str
@@ -330,7 +325,7 @@ def chi_on_atom(o1, o2, o3, model_parameters, system):
 
 def calculate_chi_tensor(atomic_coordinates, model_parameters, system):
     '''Returns the chi tensor for an input list of atomic coordinates
-    
+
     A 3-index tensor which calls atomic orbital indexes and multipole (dipole, quadrupole, etc..).
     Neglecting dipole diatomic differential overlap Focuses on intra-atomic s-p transition
     and uses a model parameter to define dipole strength. 3 transformation rules: s+_ + s+ = s+,
@@ -346,10 +341,10 @@ def calculate_chi_tensor(atomic_coordinates, model_parameters, system):
 
     Returns
     -------
-    chi_tensor: numpy array 
+    chi_tensor: numpy array
         A rank 3 tensor used for calculating the 2 electron potential matrix
- 
-    
+
+
     '''
     ndof = len(atomic_coordinates)*system.orbitals_per_atom
     chi_tensor = np.zeros( (ndof,ndof,ndof) )
@@ -366,7 +361,7 @@ def calculate_chi_tensor(atomic_coordinates, model_parameters, system):
 
 def calculate_hamiltonian_matrix(atomic_coordinates, model_parameters, system):
     '''Returns the 1-body Hamiltonian matrix for an input list of atomic coordinates.
-    
+
     The 1-body Hamiltonian coefficients (h_p,_q) combine and implement the components of
     the semi-empirical model with on-site orbital energies, E_s and E_p, the two last
     parameters of the semi-empirical model:
@@ -406,7 +401,7 @@ def calculate_hamiltonian_matrix(atomic_coordinates, model_parameters, system):
 
 def calculate_atomic_density_matrix(atomic_coordinates, system):
     '''Returns a trial 1-electron density matrix for an input list of atomic coordinates.
-    
+
     Parameters
     ----------
     atomic_coordinates : numpy.array
@@ -416,7 +411,7 @@ def calculate_atomic_density_matrix(atomic_coordinates, system):
     -------
     density_matrix : numpy.array
         A 2D matrix of 1-electron densities
-    
+
     '''
     ndof = len(atomic_coordinates)*system.orbitals_per_atom
     density_matrix = np.zeros( (ndof,ndof) )
@@ -534,14 +529,14 @@ class MP2():
 
     def partition_orbitals(self):
         """Returns a list with the occupied/virtual energies & orbitals defined by the input Fock matrix.
-	
+
         Parameters
     	----------
     	fock_matrix : numpy.ndarray
         	A (ndof,ndof) array populated with 'float' data types. The elements of this matrix are constructed by
         	numerically computing an expectation value for the fock operator operating on a state vector.
         	The transformed state is then projected onto an orbital basis.
-    	
+
         Returns
     	-------
     	occupied_energy : numpy.ndarray
@@ -595,20 +590,6 @@ class MP2():
 
 
 if __name__ == "__main__":
-    scf_params = []
-    try:
-        scf_params.append(int(input("Maximum number of scf iterations (default = 100):\n")))
-    except:
-        pass
-    try:
-        scf_params.append(float(input("Mixing fraction (default = 0.25):\n")))
-    except:
-        pass
-    try:
-        scf_params.append(float(input("Convergence_tolerance (default = 1e-4):\n")))
-    except:
-        pass
-
     #Nobel_Gas_model.gas_name = 'argon'
     system = Nobel_Gas_model(sys.argv[1])
     interaction_matrix = calculate_interaction_matrix(atomic_coordinates, system.model_parameters, system)

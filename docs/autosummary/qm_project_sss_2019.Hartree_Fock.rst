@@ -1,4 +1,4 @@
-qm\_project\_python\_testing.Hartree\_Fock
+qm\_project\_sss\_2019.Hartree\_Fock
 ==========================================
 
 .. currentmodule:: qm_project_sss_2019

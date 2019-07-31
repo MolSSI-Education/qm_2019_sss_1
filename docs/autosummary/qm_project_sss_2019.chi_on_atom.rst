@@ -1,4 +1,4 @@
-qm\_project\_python\_testing.chi\_on\_atom
+qm\_project\_sss\_2019.chi\_on\_atom
 ==========================================
 
 .. currentmodule:: qm_project_sss_2019
