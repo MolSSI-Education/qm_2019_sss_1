@@ -2,31 +2,10 @@ import json
 import numpy as np
 import sys
 import os #may not need if xyz file shares the same directory as the program
-#import hartree_fock
+import hartree_fock
+import time
 
-#Adding feature to read from .xyz geometry file -AZ
-#may or may not be read from the working directory
-
-#Integrate within Nobel_Gas_model if desired @Ronit
-
-#xyzfilename = sys.argv[2] #a cmd line argument
-
-#if len(sys.argv) != 3:
-#        print('Filename not specified. Please try again.')
-#        exit()
-
-#geom_file = os.path.join(xyzfilename) #adjust path if needed
-
-#geom = np.genfromtxt(fname=geom_file,skip_header=2, dtype='unicode')
-#atom_labels = geom[0:,0]
-#atomic_coordinates = geom[0:,1:]
-
-#atomic_coordinates = atomic_coordinates.astype(np.float)
-
-#these were provided in the original porject code--should be generalized for any set of coordinates
 atomic_coordinates = np.array([ [0.0,0.0,0.0], [3.0,4.0,5.0] ])
-#atomic_coordinates = 0.000000000001*np.random.random([20,3])
-
 
 class Nobel_Gas_model:
     def __init__(self, gas_model):
@@ -500,8 +479,14 @@ class Hartree_Fock:
            '''
 
         old_density_matrix = self.density_matrix.copy()
+	it = 0
         for iteration in range(max_scf_iterations):
+	    in_time = time.time()
             new_fock_matrix = hartree_fock.calculate_fock_matrix(self.hamiltonian_matrix, self.interaction_matrix, old_density_matrix, system.orbitals_per_atom, system.model_parameters['dipole'])
+	    end_time = time.time()
+	    diff_time = end_time - in_time
+	    it += 1
+	    print("Fock Matrix construction time: " + str(diff_time) + " s, iteration = " + str(it))
             new_density_matrix = self.calculate_density_matrix(new_fock_matrix, system)
 
             error_norm = np.linalg.norm( old_density_matrix - new_density_matrix )
@@ -611,20 +596,6 @@ class MP2():
 
 
 if __name__ == "__main__":
-    scf_params = []
-    try:
-        scf_params.append(int(input("Maximum number of scf iterations (default = 100):\n")))
-    except:
-        pass
-    try:
-        scf_params.append(float(input("Mixing fraction (default = 0.25):\n")))
-    except:
-        pass
-    try:
-        scf_params.append(float(input("Convergence_tolerance (default = 1e-4):\n")))
-    except:
-        pass
-
     #Nobel_Gas_model.gas_name = 'argon'
     system = Nobel_Gas_model(sys.argv[1])
     interaction_matrix = calculate_interaction_matrix(atomic_coordinates, system.model_parameters, system)
