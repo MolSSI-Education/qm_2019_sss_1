@@ -52,6 +52,30 @@ class Nobel_Gas_model:
                 commands[command] = float(description.strip())
         return commands"""
 
+        class Nobel_Gas_model:
+    def __init__(self, gas_model):
+        self.gas_model = gas_model
+        self.model_parameters = self.assign_model_parameters()
+        self.ionic_charge = 6
+        self.orbital_types = ['s', 'px', 'py', 'pz']
+        self.p_orbitals = self.orbital_types[1:]
+        self.orbitals_per_atom = len(self.orbital_types)
+        self.vec = {'px': [1.0,0.0,0.0], 'py' : [0.0, 1.0, 0.0], 'pz' : [0.0, 0.0, 1.0]}
+        self.orbital_occupations = {'s' : 0, 'px' : 1, 'py' : 1, 'pz' : 1 }
+
+    def assign_model_parameters(self):
+        """
+        Function in class Nobel_Gas_model to read in a file containing the model parameters for the nobel gas. The filename mush be of the
+        format <gas_name>.txt.
+        """
+        """filename = self.gas_model
+        commands = {}
+        with open(filename) as fh:
+            for line in fh:
+                command, description = line.strip().split(',', 1)
+                commands[command] = float(description.strip())
+        return commands"""
+
         model_parameters = {
         'r_hop' : 3.1810226927827516,
         't_ss' : 0.03365982238611262,
