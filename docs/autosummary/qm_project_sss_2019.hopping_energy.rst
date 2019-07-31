@@ -1,4 +1,4 @@
-qm\_project\_python\_testing.hopping\_energy
+qm\_project\_sss\_2019.hopping\_energy
 ============================================
 
 .. currentmodule:: qm_project_sss_2019
