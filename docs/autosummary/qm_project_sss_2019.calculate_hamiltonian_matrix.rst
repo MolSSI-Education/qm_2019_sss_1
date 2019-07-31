@@ -1,4 +1,4 @@
-qm\_project\_python\_testing.calculate\_hamiltonian\_matrix
+qm\_project\_sss\_2019.calculate\_hamiltonian\_matrix
 ===========================================================
 
 .. currentmodule:: qm_project_sss_2019
