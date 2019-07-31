@@ -2,7 +2,7 @@ import json
 import numpy as np
 import sys
 import os #may not need if xyz file shares the same directory as the program
-import hartree_fock
+#import hartree_fock
 import time
 
 atomic_coordinates = np.array([ [0.0,0.0,0.0], [3.0,4.0,5.0] ])
@@ -479,14 +479,8 @@ class Hartree_Fock:
            '''
 
         old_density_matrix = self.density_matrix.copy()
-	it = 0
         for iteration in range(max_scf_iterations):
-	    in_time = time.time()
             new_fock_matrix = hartree_fock.calculate_fock_matrix(self.hamiltonian_matrix, self.interaction_matrix, old_density_matrix, system.orbitals_per_atom, system.model_parameters['dipole'])
-	    end_time = time.time()
-	    diff_time = end_time - in_time
-	    it += 1
-	    print("Fock Matrix construction time: " + str(diff_time) + " s, iteration = " + str(it))
             new_density_matrix = self.calculate_density_matrix(new_fock_matrix, system)
 
             error_norm = np.linalg.norm( old_density_matrix - new_density_matrix )
